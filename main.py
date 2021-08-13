@@ -2,6 +2,7 @@ from io import StringIO
 from json.decoder import JSONDecoder
 from os import path
 import json
+import ssl
 import telebot
 from telebot.types import Message
 from model import dbQuery
@@ -18,6 +19,12 @@ dbSql = dbQuery(config['database'])
 language = json.load(open(config['language'],encoding='utf8'))
 
 bot = telebot.TeleBot(config['botToken'], parse_mode='HTML')
+
+# Configuration for webhook
+webhookBaseUrl = f"https://{config['webhookOptions']['webhookHost']}:{config['webhookOptions']['webhookPort']}"
+webhookUrlPath = f"/{config['botToken']}/"
+
+app =web.Application()
 
 # Main reply keyboard
 def mainReplyKeyboard(userLanguage):
@@ -372,6 +379,19 @@ def text(message:telebot.types.Message):
                     bot.send_message(message.chat.id,language[userLanguage]['noPatch'].format(patch),reply_to_message_id=message.id)
 
             
-bot.polling()
+bot.set_webhook(url=webhookBaseUrl + webhookUrlPath,
+                    certificate=open(config['webhookOptions']['sslCertificate'], 'r'))
+
+    # Build ssl context
+context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
+context.load_cert_chain(config['webhookOptions']['sslCertificate'], config['webhookOptions']['sslPrivatekey'])
+
+    # Start aiohttp server
+web.run_app(
+        app,
+        host=config['webhookOptions']['webhookListen'],
+        port=config['webhookOptions']['webhookPort'],
+        ssl_context=context,
+    )
 
 
