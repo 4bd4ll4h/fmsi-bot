@@ -1,0 +1,27 @@
+{
+    "botToken": "1917946366:AAFaG9skuko4iTWu_L6jgnvfUn84Tv87Tus",
+    
+    "webhookOptions":{
+        "webhookHost": null,
+        
+        "webhookPort": null,
+        
+        "webhookListen": "0.0.0.0",
+        
+        "sslCertificate": null,
+        
+        "sslPrivateKey": null
+    },
+    "connectionType": "polling",
+
+    "database": "database.sqlite",
+
+    "cache": "cache",
+
+    "cacheTime": 86400,
+
+    "language":"lang.json",
+
+    "chatId":-1001451209844
+
+}
