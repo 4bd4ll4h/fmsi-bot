@@ -1,3 +1,0 @@
-tpblite
-aiohttp
-pyTelegramBotApi
