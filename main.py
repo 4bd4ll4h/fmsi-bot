@@ -390,7 +390,7 @@ def text(message:telebot.types.Message):
                 else :
                     bot.send_message(message.chat.id,language[userLanguage]['noPatch'].format(patch),reply_to_message_id=message.id)
 
-            
+bot.polling()       
 bot.set_webhook(url=webhookBaseUrl + webhookUrlPath)
 
     
