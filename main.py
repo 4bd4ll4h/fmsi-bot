@@ -379,19 +379,14 @@ def text(message:telebot.types.Message):
                     bot.send_message(message.chat.id,language[userLanguage]['noPatch'].format(patch),reply_to_message_id=message.id)
 
             
-bot.set_webhook(url=webhookBaseUrl + webhookUrlPath,
-                    certificate=open(config['webhookOptions']['sslCertificate'], 'r'))
+bot.set_webhook(url=webhookBaseUrl + webhookUrlPath)
 
-    # Build ssl context
-context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
-context.load_cert_chain(config['webhookOptions']['sslCertificate'], config['webhookOptions']['sslPrivatekey'])
-
+    
     # Start aiohttp server
 web.run_app(
         app,
         host=config['webhookOptions']['webhookListen'],
-        port=config['webhookOptions']['webhookPort'],
-        ssl_context=context,
+        port=config['webhookOptions']['webhookPort']
     )
 
 
