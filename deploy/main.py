@@ -384,9 +384,7 @@ bot.set_webhook(url=webhookBaseUrl + webhookUrlPath)
     
     # Start aiohttp server
 web.run_app(
-        app,
-        host=config['webhookOptions']['webhookListen'],
-        port=config['webhookOptions']['webhookPort']
+        app
     )
 
 
