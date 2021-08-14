@@ -389,17 +389,9 @@ def text(message:telebot.types.Message):
                     bot.edit_message_text(language[userLanguage]['doneSending'],m.chat.id,m.id)
                 else :
                     bot.send_message(message.chat.id,language[userLanguage]['noPatch'].format(patch),reply_to_message_id=message.id)
-
+bot.polling(none_stop=True)
 bot.delete_webhook(drop_pending_updates=False)       
-bot.set_webhook(url=webhookBaseUrl + webhookUrlPath)
 
-    
-    # Start aiohttp server
-web.run_app(
-        app,
-        host=config['webhookOptions']['webhookListen'],
-        port=config['webhookOptions']['webhookPort']
-    )
     
 
 
