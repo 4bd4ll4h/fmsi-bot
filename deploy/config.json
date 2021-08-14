@@ -6,7 +6,7 @@
         
         "webhookPort": 8443,
         
-        "webhookListen": "142.251.33.84",
+        "webhookListen": "0.0.0.0",
         
         "sslCertificate": null,
         
