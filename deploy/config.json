@@ -2,11 +2,11 @@
     "botToken": "1917946366:AAFaG9skuko4iTWu_L6jgnvfUn84Tv87Tus",
     
     "webhookOptions":{
-        "webhookHost": null,
+        "webhookHost": "102.125.57.10",
         
-        "webhookPort": null,
+        "webhookPort": 80,
         
-        "webhookListen": "0.0.0.0",
+        "webhookListen": "102.125.57.10",
         
         "sslCertificate": null,
         
