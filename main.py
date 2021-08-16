@@ -39,7 +39,7 @@ async def handle(request ):
     else:
         return web.Response(status=403)
 async def test(requsest):
-    return web.Response(body="<h1>it's working!!</h1>")
+    return web.Response(text="<h1>it's working!!</h1>")
 app.router.add_post("/{token}/", handler= handle)
 app.router.add_get("/",handler=test)
 # Main reply keyboard
@@ -399,11 +399,13 @@ bot.set_webhook(url=webhookBaseUrl + webhookUrlPath)
 
     
     # Start aiohttp server
-web.run_app(
+if __name__ == '__main__':
+    print("app started")
+    web.run_app(
         app,
         host=config['webhookOptions']['webhookListen'],
         port=config['webhookOptions']['webhookPort']
     )
-print("app started")
+
 
 
