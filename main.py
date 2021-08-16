@@ -2,6 +2,7 @@ from io import StringIO
 from json.decoder import JSONDecoder
 from os import path
 import json
+import re
 import ssl
 import telebot
 from telebot.types import Message
@@ -28,6 +29,7 @@ app =web.Application()
 
 # Process webhook calls
 async def handle(request ):
+    print("helllllooooo")
     if request.match_info.get('token') == bot.token:
         request_body_dict = await request.json()
         update = telebot.types.Update.de_json(request_body_dict)
@@ -36,9 +38,10 @@ async def handle(request ):
         return web.Response()
     else:
         return web.Response(status=403)
-
-app.router.add_post(f"/{config['botToken']}/", handler= handle)
-app.router.add_get("/",handler=handle)
+async def test(requsest):
+    return web.Response(body="<h1>it's working!!</h1>")
+app.router.add_post("/{token}/", handler= handle)
+app.router.add_get("/",handler=test)
 # Main reply keyboard
 def mainReplyKeyboard(userLanguage):
     keyboard = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
