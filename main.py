@@ -402,9 +402,7 @@ bot.set_webhook(url=webhookBaseUrl + webhookUrlPath)
 if __name__ == '__main__':
     print("app started")
     web.run_app(
-        app,
-        host=config['webhookOptions']['webhookListen'],
-        port=config['webhookOptions']['webhookPort']
+        app
     )
 
 
