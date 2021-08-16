@@ -404,6 +404,6 @@ web.run_app(
         host=config['webhookOptions']['webhookListen'],
         port=config['webhookOptions']['webhookPort']
     )
-    
+print("app started")
 
 
