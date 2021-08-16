@@ -2,7 +2,7 @@
     "botToken": "1917946366:AAFaG9skuko4iTWu_L6jgnvfUn84Tv87Tus",
     
     "webhookOptions":{
-        "webhookHost": "4bd4ll4h.pythonanywhere.com",
+        "webhookHost": "fmsi-bot.herokuapp.com",
         
         "webhookPort": 8443,
         
