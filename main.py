@@ -22,10 +22,10 @@ language = json.load(open(config['language'],encoding='utf8'))
 bot = telebot.TeleBot(config['botToken'], parse_mode='HTML')
 
 # Configuration for webhook
-webhookBaseUrl = f"https://{config['webhookOptions']['webhookHost']}"
+webhookBaseUrl = f"https://{config['webhookOptions']['webhookHost']}:{config['webhookOptions']['webhookPort']}"
 webhookUrlPath = f"/{config['botToken']}/"
 
-app =web.Application()
+#app =web.Application()
 
 # Process webhook calls
 async def handle(request ):
@@ -40,8 +40,8 @@ async def handle(request ):
         return web.Response(status=403)
 async def test(requsest):
     return web.Response(text="<h1>it's working!!</h1>")
-app.router.add_post("/{token}/", handler= handle)
-app.router.add_get("/",handler=test)
+#app.router.add_post("/{token}/", handler= handle)
+#app.router.add_get("/",handler=test)
 # Main reply keyboard
 def mainReplyKeyboard(userLanguage):
     keyboard = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
@@ -93,24 +93,25 @@ def makeMarup(mdirs,lang,message):
     print(ids)
     if ids:
         for id in ids:
-            if(id[2]=='document'):
-                bot.send_document(message.chat.id,id[1])
-            elif id[2]=='media_group':
-                bot.send_video(message.chat.id,id[1])
-            elif id[2]=='text':
-                bot.send_message(message.chat.id,id[1])
-            elif id[2]=='audio':
-                bot.send_audio(message.chat.id,id[1])
-            elif id[2]=='photo':
-                bot.send_photo(message.chat.id,id[1])
-            elif id[2]=='video':
-                bot.send_video(message.chat.id,id[1])
-            elif id[2]=='video_note':
-                bot.send_video_note(message.chat.id,id[1])
-            elif id[2]=='voice':
-                bot.send_voice(message.chat.id,id[1])
-            elif id[2]=='location':
-                bot.send_location(message.chat.id,id[1])
+            if id:
+                if(id[2]=='document'):
+                    bot.send_document(message.chat.id,id[1])
+                elif id[2]=='media_group':
+                    bot.send_video(message.chat.id,id[1])
+                elif id[2]=='text':
+                    bot.send_message(message.chat.id,id[1])
+                elif id[2]=='audio':
+                    bot.send_audio(message.chat.id,id[1])
+                elif id[2]=='photo':
+                    bot.send_photo(message.chat.id,id[1])
+                elif id[2]=='video':
+                    bot.send_video(message.chat.id,id[1])
+                elif id[2]=='video_note':
+                    bot.send_video_note(message.chat.id,id[1])
+                elif id[2]=='voice':
+                    bot.send_voice(message.chat.id,id[1])
+                elif id[2]=='location':
+                    bot.send_location(message.chat.id,id[1])
             
             
 
@@ -118,7 +119,8 @@ def makeMarup(mdirs,lang,message):
     
     markup = telebot.types.InlineKeyboardMarkup()
     if dirs :
-        for dr  in dirs:
+        for d  in dirs:
+            dr=d[0]
             print(dr,mdirs,dr.find(mdirs))
             if dr.find(mdirs)>-1:
                 text= dr.replace(mdirs+'/','').split('/')[0]
@@ -338,7 +340,7 @@ def callbackHandler(call):
 # Text handler
 @bot.message_handler(content_types=['text'])
 def text(message:telebot.types.Message):
-    print(message.chat.id)
+   
     userLanguage = dbSql.getLanguage(message.from_user.id)
     if message.text in ['/courses',language[userLanguage]['courses']]:
         bot.send_message(message.chat.id,language[userLanguage]['select_sem'],disable_web_page_preview=False,reply_markup=makeMarup('c',userLanguage,message))
@@ -395,15 +397,17 @@ def text(message:telebot.types.Message):
                     bot.send_message(message.chat.id,language[userLanguage]['noPatch'].format(patch),reply_to_message_id=message.id)
 
 bot.delete_webhook(drop_pending_updates=False)       
-bot.set_webhook(url=webhookBaseUrl + webhookUrlPath)
-
+#bot.set_webhook(url=webhookBaseUrl + webhookUrlPath)
+bot.polling(none_stop=True)
     
     # Start aiohttp server
-if __name__ == '__main__':
-    print("app started")
-    web.run_app(
-        app
-    )
+#if __name__ == '__main__':
+ #   print("app started")
+  #  web.run_app(
+   #     app,
+    #    host=config['webhookOptions']['webhookListen'],
+     #   port=config['webhookOptions']['webhookPort']
+   # )
 
 
 

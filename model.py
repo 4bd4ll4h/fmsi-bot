@@ -1,3 +1,4 @@
+import re
 import sqlite3
 
 class dbQuery():
@@ -30,10 +31,11 @@ class dbQuery():
     def getSubUser(self,patch:str):
         con =sqlite3.connect(self.db)
         cur=con.cursor()
-        res=cur.execute(f'SELECT userChat from users WHERE PatchNews = true and Lev like "{patch}"').fetchall()
+        res=cur.execute(f'SELECT userChat from users WHERE PatchNews = true and Lev like "{patch}"')
         con.commit()
         con.close()
-        return res
+        result=res.fetchall() if res else [""] 
+        return result
     def setUserInfo(self,userId,column,data):
         con = sqlite3.connect(self.db)
         cur = con.cursor()
@@ -62,19 +64,23 @@ class dbQuery():
     def getLanguage(self,userId):
         con=sqlite3.connect(self.db)
         cur=con.cursor()
-        lang= cur.execute(f"SELECT Lang from users WHERE UserID={userId}").fetchone()
+        res= cur.execute(f"SELECT Lang from users WHERE UserID={userId}")
+        lang =res.fetchone() if res else ["ar"]
         con.commit()
         con.close()
         return lang[0] if lang else 'ar'
     def getMessgesIDs(self,dirs):
         conn=sqlite3.connect(self.db)
         cur=conn.cursor()
-        ids=cur.execute(f'SELECT chatId,messageId,content_type FROM messages WHERE dir = "{dirs}"').fetchall()
+        res=cur.execute(f'SELECT chatId,messageId,content_type FROM messages WHERE dir = "{dirs}"')
+        ids=res.fetchall() if res else None
+        conn.close()
         return ids
     def checkDirCode(self,d):
         conn=sqlite3.connect(self.db)
         cur=conn.cursor()
-        codes=cur.execute(f'SELECT ar , en FROM codeNames WHERE dir = "{d}"').fetchone()
+        res=cur.execute(f'SELECT ar , en FROM codeNames WHERE dir = "{d}"')
+        codes=res.fetchone() if res else None
         conn.commit()
         conn.close()
         if codes:
@@ -97,9 +103,6 @@ class dbQuery():
     def setDir(self, lang,dirs ,name):
         conn=sqlite3.connect(self.db)
         cur=conn.cursor()
-        print(lang)
-        print(dirs)
-        print(name)
         try:
             cur.execute(f''' INSERT INTO codeNames (dir, {lang})
             VALUES
@@ -117,14 +120,19 @@ class dbQuery():
 
         conn=sqlite3.connect(self.db)
         cur=conn.cursor()
-        res=cur.execute(f'SELECT dir FROM messages WHERE dir like "{dirs}%"').fetchall()[0]
-        conn.close
-        return res
+        res=cur.execute(f'SELECT dir FROM messages WHERE dir like "{dirs}%"')
+        conn.commit()
+        d=res.fetchall() if res else None
+        print(dirs,cur.execute(f'SELECT dir FROM messages WHERE dir like "{dirs}%"').fetchall())
+        conn.close()
+        return d
     def getDirName(self , dr,lang):
         conn=sqlite3.connect(self.db)
         cur=conn.cursor()
-        res=cur.execute(f'SELECT {lang} FROM codeNames WHERE dir like "{dr}%"').fetchone()[0]
-        return res
+        res=cur.execute(f'SELECT {lang} FROM codeNames WHERE dir like "{dr}%"')
+        d=res.fetchone()[0] if res else None
+        conn.close()
+        return d
 
 
 
