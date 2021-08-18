@@ -1,4 +1,4 @@
-import re
+
 import sqlite3
 
 class dbQuery():
@@ -123,7 +123,7 @@ class dbQuery():
         res=cur.execute(f'SELECT dir FROM messages WHERE dir like "{dirs}%"')
         conn.commit()
         d=res.fetchall() if res else None
-        print(dirs,cur.execute(f'SELECT dir FROM messages WHERE dir like "{dirs}%"').fetchall())
+        print(res.fetchall()[0])
         conn.close()
         return d
     def getDirName(self , dr,lang):
