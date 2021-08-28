@@ -21,27 +21,9 @@ language = json.load(open(config['language'],encoding='utf8'))
 
 bot = telebot.TeleBot(config['botToken'], parse_mode='HTML')
 
-# Configuration for webhook
-webhookBaseUrl = f"https://{config['webhookOptions']['webhookHost']}:{config['webhookOptions']['webhookPort']}"
-webhookUrlPath = f"/{config['botToken']}/"
 
-#app =web.Application()
 
-# Process webhook calls
-async def handle(request ):
-    print("helllllooooo")
-    if request.match_info.get('token') == bot.token:
-        request_body_dict = await request.json()
-        update = telebot.types.Update.de_json(request_body_dict)
-        
-        bot.process_new_updates([update])
-        return web.Response()
-    else:
-        return web.Response(status=403)
-async def test(requsest):
-    return web.Response(text="<h1>it's working!!</h1>")
-#app.router.add_post("/{token}/", handler= handle)
-#app.router.add_get("/",handler=test)
+
 # Main reply keyboard
 def mainReplyKeyboard(userLanguage):
     keyboard = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
@@ -76,18 +58,8 @@ def grade(message, userLanguage, called=False):
     else:
         bot.send_message(message.chat.id, language[userLanguage]['chooseGrade'],reply_to_message_id=message.id, reply_markup=markup)
 
-def coursesList(userLanguage):
-    markup = telebot.types.InlineKeyboardMarkup()
-    
-    markup.add(telebot.types.InlineKeyboardButton(language[userLanguage]['sem1'], callback_data=f'first_sem_{userLanguage}'), telebot.types.InlineKeyboardButton(language[userLanguage]['sem2'], callback_data=f'second_sem_{userLanguage}')) 
-    markup.add(telebot.types.InlineKeyboardButton(language[userLanguage]['sem3'], callback_data=f'third_sem_{userLanguage}'), telebot.types.InlineKeyboardButton(language[userLanguage]['sem4'], callback_data=f'fourth_sem_{userLanguage}')) 
-    markup.add(telebot.types.InlineKeyboardButton(language[userLanguage]['sem5'], callback_data=f'fifth_sem_{userLanguage}'), telebot.types.InlineKeyboardButton(language[userLanguage]['sem6'], callback_data=f'sixth_sem_{userLanguage}'))
-    markup.add(telebot.types.InlineKeyboardButton(language[userLanguage]['sem7'], callback_data=f'seventh_sem_{userLanguage}'), telebot.types.InlineKeyboardButton(language[userLanguage]['sem8'], callback_data=f'eigth_sem_{userLanguage}'))
-    markup.add(telebot.types.InlineKeyboardButton(language[userLanguage]['sem9'], callback_data=f'nineth_sem_{userLanguage}'), telebot.types.InlineKeyboardButton(language[userLanguage]['sem10'], callback_data=f'tenth_sem_{userLanguage}'))
-    
-    return markup
 
-def makeMarup(mdirs,lang,message):
+def makeMarup(mdirs :str,lang,message):
     
     ids=dbSql.getMessgesIDs(mdirs)
     print(ids)
@@ -119,13 +91,26 @@ def makeMarup(mdirs,lang,message):
     
     markup = telebot.types.InlineKeyboardMarkup()
     if dirs :
+        dr =list()
         for d  in dirs:
-            dr=d[0]
-            print(dr,mdirs,dr.find(mdirs))
-            if dr.find(mdirs)>-1:
-                text= dr.replace(mdirs+'/','').split('/')[0]
+            dirctoryText=d[0].replace(mdirs+'/','').split('/')[0]
+            if dirctoryText not in dr :dr.append(dirctoryText)
+        for i in range(0,len(dr),2):
+            if len(dr)<= i+1 :
+                text= dr[i]
                 markup.add(telebot.types.InlineKeyboardButton(dbSql.getDirName(text,lang), callback_data=mdirs+'/'+text))
-        return markup
+            else :
+                
+                print(dr)
+                text= dr[i]
+                text2= dr[i+1]
+                markup.add(telebot.types.InlineKeyboardButton(dbSql.getDirName(text,lang), callback_data=mdirs+'/'+text),telebot.types.InlineKeyboardButton(dbSql.getDirName(text2,lang), callback_data=mdirs+'/'+text2))
+    if mdirs[0:mdirs.rfind('/')]!="":
+        back=mdirs[0:mdirs.rfind('/')]
+        markup.add(telebot.types.InlineKeyboardButton(language[lang]['back'], callback_data=back))
+    
+    
+    return markup
                 
     
 def checkDir(dirs:str):
@@ -180,14 +165,17 @@ def saveIndex(message):
 
 @bot.message_handler(commands=['start'])
 def start(message):
-    if  not dbSql.setAccount(message.from_user.id,message.chat.id):
-        lang=dbSql.getLanguage(message.from_user.id)
-        bot.send_message(message.chat.id,text=language[lang]['greet'].format(message.from_user.first_name),reply_markup=mainReplyKeyboard(lang),disable_web_page_preview=True)
-        grade(message,lang)
-    elif(not dbSql.checkInfo(message.from_user.id,"Lev")):
-        lang=dbSql.getLanguage(message.from_user.id)
-        bot.send_message(message.chat.id,text=language[lang]['greetComBack'].format(message.from_user.first_name),reply_markup=mainReplyKeyboard(lang),disable_web_page_preview=True)
-        grade(message,lang,True)
+    if message.chat.id !=config['chatId'] :
+        if not dbSql.setAccount(message.from_user.id,message.chat.id):
+            lang=dbSql.getLanguage(message.from_user.id)
+            bot.send_message(message.chat.id,text=language[lang]['greet'].format(message.from_user.first_name),reply_markup=mainReplyKeyboard(lang),disable_web_page_preview=True)
+            grade(message,lang)
+        elif(not dbSql.checkInfo(message.from_user.id,"Lev")):
+            lang=dbSql.getLanguage(message.from_user.id)
+            bot.send_message(message.chat.id,text=language[lang]['greetComBack'].format(message.from_user.first_name),reply_markup=mainReplyKeyboard(lang),disable_web_page_preview=True)
+            grade(message,lang,True)
+    else:
+        bot.send_message(message.chat.id,"start command is for bot frontend only 👾",reply_to_message_id=message.id)
 
 @bot.message_handler(commands=['help'])
 def help(message):
@@ -331,7 +319,7 @@ def callbackHandler(call):
         bot.edit_message_reply_markup(chat_id=call.message.chat.id,message_id=call.message.id,reply_markup=markup)
     elif len(call.data.split('/'))>0:
         try:
-            bot.edit_message_text(dbSql.getDirName(call.data.split('/')[0],lang),call.message.chat.id,call.message.id)
+            bot.edit_message_text(dbSql.getDirName(call.data.split('/')[-1],lang),call.message.chat.id,call.message.id)
             bot.edit_message_reply_markup(call.message.chat.id,call.message.id,reply_markup=makeMarup(call.data,lang,call.message))
         except:return
         
@@ -367,12 +355,7 @@ def text(message:telebot.types.Message):
         bot.send_message(message.chat.id,language[userLanguage]['helpMessage'])
     if message.chat.id==config['chatId']:
         if '$i/' in message.text:
-            arg=message.text.split('/')
-            if dbSql.setDir(arg[1],arg[2],arg[3][1:len(arg[3])-1]):
-                bot.send_message(message.chat.id,language[userLanguage]['grade_selected'],reply_to_message_id=message.id)
-            else:
-                bot.send_message(message.chat.id,language[userLanguage]['fail_insert_dir'],reply_to_message_id=message.id)
-
+            bot.register_next_step_handler(bot.send_message(message.chat.id,"enter Diractory name"),callback=)
         elif message.reply_to_message and message.text[0:2]=='$c':
             checker=checkDir(message.text.replace('$',''))
             print(checker)
@@ -396,18 +379,30 @@ def text(message:telebot.types.Message):
                 else :
                     bot.send_message(message.chat.id,language[userLanguage]['noPatch'].format(patch),reply_to_message_id=message.id)
 
-bot.delete_webhook(drop_pending_updates=False)       
-#bot.set_webhook(url=webhookBaseUrl + webhookUrlPath)
+@bot.message_handler(commands=['admin'])
+def admin(messege : telebot.types.Message):
+    if messege.chat.id==config['chatId']:
+        keyboard = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
+        
+        button1 = telebot.types.KeyboardButton(text='add Diractory')
+        button2 = telebot.types.KeyboardButton(text='update Diractory')
+        button3 = telebot.types.KeyboardButton(text='delete Diractory')
+
+        button4 = telebot.types.KeyboardButton(text='add file')
+        button5 = telebot.types.KeyboardButton(text='update file')
+        button6 = telebot.types.KeyboardButton(text='delete file')
+
+        button6 = telebot.types.KeyboardButton(text='send news')
+        
+        keyboard.row(button1,button2,button3)
+        keyboard.row(button4,button5,button6)
+
+        bot.send_message(messege.chat.id,'⚙️ admin commands running...',reply_markup=keyboard)
+    
+
 bot.polling(none_stop=True)
     
-    # Start aiohttp server
-#if __name__ == '__main__':
- #   print("app started")
-  #  web.run_app(
-   #     app,
-    #    host=config['webhookOptions']['webhookListen'],
-     #   port=config['webhookOptions']['webhookPort']
-   # )
+ 
 
 
 

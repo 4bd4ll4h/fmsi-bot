@@ -55,10 +55,7 @@ class dbQuery():
 
         isRegistered = cur.execute(f'SELECT {info} FROM users WHERE UserID={userId}').fetchone()
         con.commit()
-
-        isRegistered = True if isRegistered[0] else False
-
-        
+        isRegistered = True if isRegistered[0] else False 
         return isRegistered
         
     def getLanguage(self,userId):
@@ -121,9 +118,8 @@ class dbQuery():
         conn=sqlite3.connect(self.db)
         cur=conn.cursor()
         res=cur.execute(f'SELECT dir FROM messages WHERE dir like "{dirs}%"')
-        conn.commit()
         d=res.fetchall() if res else None
-        print(res.fetchall()[0])
+        conn.commit()
         conn.close()
         return d
     def getDirName(self , dr,lang):
