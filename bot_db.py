@@ -18,7 +18,8 @@ else:
             name TEXT,
             News TEXT DEFAULT "false",
             Lang TEXT DEFAULT "ar",
-            PatchNews TEXT DEFAULT "true");''')
+            PatchNews TEXT DEFAULT "true",
+            userChat TEXT);''')
     conn.commit()
     print('[+] Table users created successfully.')
 
