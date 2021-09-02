@@ -47,4 +47,33 @@
         "helpMessage":"سكولاري  🙃 او بوت كلية العلوم الرياضية و المعلوماتية FMSI🤍\n\n\nصمم البوت بهدف المساعدة في تنظيم المحتوي الرقمي من (<code> محاضرات ,🎥 تيتوريالات , لابات 🖥, مراجع 📚,ملاحظات🔖 , امتحانات 📑...الخ</code>) ليصل الطالب للمحتوي بسرعة و سهولة و يسر🙃 \n\nكما يهدف لابتكار وسيلة اسرع لربط طلاب الكلية ببعضهم من خلال نشرة رسائل قصيرة تصل للكل (او دفعة معينة) بآخر الاخبار و الأمور العاجلة.\n\nو أخيراً يهدف لتوثيق كامل محتوي الكلية ليصبح مرجعاً لكل طلاب الكلية الحاليين و اللاحقين بإذن الله \n\n <b>ملاحظة</b>: \nالبوت في طور البناء 😁 يمكنك ابداء ملاحظاتك او المساعدة في اكماله🦾 فقط اضغط علي زي <b>تواصل معنا</b>  ثم ارسل رسالتك مباشرة او راسلني  علي  @Abd4ll4h_4 "
         ,"adminHelp":"🦥Soon...🕸"
     }
+    ,
+    "admin":{
+        "addDir":"add Diractory",
+        "updateDir":"update Diractory",
+        "delDir":"delete Diractory",
+        "addMess":"add file",
+        "updateMess":"update file",
+        "delMess":"delete file",
+        "sendNews":"send news",
+        "exisited":"Diractory already exisited",
+        "enterLang":"enter Diractory name in {} language",
+        "setDirComplete":"Setting Diractory completed ✅",
+        "updateDirName":"update Diractory code",
+        "updateENDir":"update English Name",
+        "updateARDir":"update Arabic Name",
+        "newName":"enter new Name",
+        "dirName":"enter Diractory code",
+        "chooseDir":"choose Diractory to paste file",
+        "pasteMessage":"paste your the message after here 🔽",
+        "AddDiractory":"Add Diractory",
+        "messageInserted":"Saved successfully ✅",
+        "instracionDelMess":"to delete a file > make the message that contain the file a reply message for message button delete file",
+        "messageDleleted":"the file has been deleted ✅",
+        "patchNews":"Patch News",
+        "colNews":"Facalty News",
+        "sending":"sending...",
+        "doneSending":"done 👌",
+        "noSub":"no sub users"
+    }
 }

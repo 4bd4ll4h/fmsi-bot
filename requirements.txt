@@ -1,3 +1,4 @@
 tpblite
+sqlalchemy
 aiohttp
 pyTelegramBotApi
