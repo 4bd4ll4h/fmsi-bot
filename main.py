@@ -3,9 +3,10 @@ from io import StringIO
 from json.decoder import JSONDecoder
 from os import path
 import json
+
 import re
-import ssl
-from sqlalchemy.sql.expression import delete, false, true
+
+from sqlalchemy.sql.expression import delete, false, true, update
 import telebot
 from telebot.types import Message
 from db.queries import *
@@ -30,7 +31,7 @@ def mainReplyKeyboard(userLanguage):
     keyboard = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
     
     button1 = telebot.types.KeyboardButton(text=language[userLanguage]['courses'])
-    button2 = telebot.types.KeyboardButton(text=language[userLanguage]['sitting'])
+    button2 = telebot.types.KeyboardButton(text=language[userLanguage]['setting'])
     button3 = telebot.types.KeyboardButton(text=language[userLanguage]['contact'])
     button4 = telebot.types.KeyboardButton(text=language[userLanguage]['help'])
     
@@ -67,24 +68,24 @@ def makeMarup(mdirs :str,lang,message,justDir=False):
         if ids:
             for id in ids:
                 if id:
-                    if(id[2]=='document'):
-                        bot.send_document(message.chat.id,id[1])
-                    elif id[2]=='media_group':
-                        bot.send_video(message.chat.id,id[1])
-                    elif id[2]=='text':
-                        bot.send_message(message.chat.id,id[1])
-                    elif id[2]=='audio':
-                        bot.send_audio(message.chat.id,id[1])
-                    elif id[2]=='photo':
-                        bot.send_photo(message.chat.id,id[1])
-                    elif id[2]=='video':
-                        bot.send_video(message.chat.id,id[1])
-                    elif id[2]=='video_note':
-                        bot.send_video_note(message.chat.id,id[1])
-                    elif id[2]=='voice':
-                        bot.send_voice(message.chat.id,id[1])
-                    elif id[2]=='location':
-                        bot.send_location(message.chat.id,id[1])
+                    if(id.content_type=='document'):
+                        bot.send_document(message.chat.id,id.messageId)
+                    elif id.content_type=='media_group':
+                        bot.send_video(message.chat.id,id.messageId)
+                    elif id.content_type=='text':
+                        bot.send_message(message.chat.id,id.messageId)
+                    elif id.content_type=='audio':
+                        bot.send_audio(message.chat.id,id.messageId)
+                    elif id.content_type=='photo':
+                        bot.send_photo(message.chat.id,id.messageId)
+                    elif id.content_type=='video':
+                        bot.send_video(message.chat.id,id.messageId)
+                    elif id.content_type=='video_note':
+                        bot.send_video_note(message.chat.id,id.messageId)
+                    elif id.content_type=='voice':
+                        bot.send_voice(message.chat.id,id.messageId)
+                    elif id.content_type=='location':
+                        bot.send_location(message.chat.id,id.messageId)
                 
                 
 
@@ -119,8 +120,8 @@ def makeMarup(mdirs :str,lang,message,justDir=False):
 def checkDir(dirs:str):
     dirList=dirs.split('/') if len(dirs.split('/'))>0 else [dirs]
     for d in dirList:
-        if checkDirCode(d)!= True:
-            return [d,checkDirCode(d)]
+        if checkDirCode(d.lower().strip())!= True:
+            return [d,checkDirCode(d.lower().strip())]
     return True
 
 def dirMarkup(codeNames):
@@ -159,25 +160,38 @@ def changeSetting(userLanguage:str,message):
     markup  = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
     
     markup.add(telebot.types.InlineKeyboardButton(language[userLanguage]['addIndex']), telebot.types.InlineKeyboardButton(language[userLanguage]['patchNews'])) 
-    markup.add(telebot.types.InlineKeyboardButton(language[userLanguage]['back']),telebot.types.InlineKeyboardButton(language[userLanguage]['colNews'])) 
-   
+    markup.add(telebot.types.InlineKeyboardButton(language[userLanguage]['language']),telebot.types.InlineKeyboardButton(language[userLanguage]['colNews'])) 
+    markup.add(telebot.types.InlineKeyboardButton(language[userLanguage]['back']))
     bot.send_message(message.chat.id,text=language[userLanguage]['chooseSetting'],reply_markup=markup)
-def saveIndex(message):
-    setIndex(message.from_user.id,message.text)
-    bot.send_message(message.chat.id,language['ar']['grade_selected'])
+def saveIndex(message:telebot.types.Message):
+    res=re.search("^\d\d\d-\d\d\d$",message.text.lower().strip())
+    if res:
+        setIndex(message.from_user.id,res[0])
+        bot.send_message(message.chat.id,language['ar']['grade_selected'])
+    else :
+        bot.send_message(message.chat.id,language[getLanguage(message.from_user.id)]['worngIndex'])
 
+def startLang(message:telebot.types.Message,update=''):
+    markup  = telebot.types.InlineKeyboardMarkup()
+    markup.add(telebot.types.InlineKeyboardButton(language['ar']['arabic'],callback_data=f'{update}Lang=ar'), telebot.types.InlineKeyboardButton(language['en']['english'],callback_data=f'{update}Lang=en')) 
+    bot.send_message(message.chat.id,language['ar']['chooseLang'],reply_markup=markup)
 
 @bot.message_handler(commands=['start'])
-def start(message):
+def start(message:telebot.types.Message):
     if message.chat.id !=config['chatId'] :
-        if not setAccount(message.from_user.id,message.chat.id):
+        if isNewUser(message.from_user.id):
+            startLang(message)
+        else :
             lang=getLanguage(message.from_user.id)
-            bot.send_message(message.chat.id,text=language[lang]['greet'].format(message.from_user.first_name),reply_markup=mainReplyKeyboard(lang),disable_web_page_preview=True)
-            grade(message,lang)
-        elif(not checkInfo(message.from_user.id,"Lev")):
-            lang=getLanguage(message.from_user.id)
-            bot.send_message(message.chat.id,text=language[lang]['greetComBack'].format(message.from_user.first_name),reply_markup=mainReplyKeyboard(lang),disable_web_page_preview=True)
-            grade(message,lang,True)
+            if not setAccount(message.from_user.id,message.chat.id,lang):
+                
+                bot.send_message(message.chat.id,text=language[lang]['greet'].format(message.from_user.first_name),reply_markup=mainReplyKeyboard(lang),disable_web_page_preview=True)
+                grade(message,lang)
+            else:
+                bot.send_message(message.chat.id,text=language[lang]['greetComBack'].format(message.from_user.first_name),reply_markup=mainReplyKeyboard(lang),disable_web_page_preview=True)
+
+                if(not checkInfo(message.from_user.id,"Lev")):            
+                    grade(message,lang,True)
     else:
         bot.send_message(message.chat.id,"start command is for bot frontend only 👾",reply_to_message_id=message.id)
 
@@ -337,6 +351,25 @@ def callbackHandler(call:telebot.types.CallbackQuery):
             setLev('5/dep/s',call.from_user.id)
             bot.delete_message(call.message.chat.id,call.message.id)
             bot.send_message(call.message.chat.id,language[lang]['grade_selected'])
+    elif 'UPDATELang=' in call.data:
+        setUserInfo(call.from_user.id,'Lang',call.data.split("=")[1])
+        userLang=getLanguage(call.from_user.id)
+        bot.send_message(call.message.chat.id,language[userLang]['langUpdated'])
+        changeSetting(userLang,call.message)
+    elif 'Lang=' in call.data:
+        lang=call.data.split("=")[1]
+        if call.message.chat.id !=config['chatId'] :
+            if not setAccount(call.message.from_user.id,call.message.chat.id,lang):
+
+                bot.send_message(call.message.chat.id,text=language[lang]['greet'].format(call.from_user.first_name),reply_markup=mainReplyKeyboard(lang),disable_web_page_preview=True)
+                grade(call.message,lang)
+            elif(not checkInfo(call.message.from_user.id,"Lev")):
+                bot.send_message(call.message.chat.id,text=language[lang]['greetComBack'].format(call.from_user.first_name),reply_markup=mainReplyKeyboard(lang),disable_web_page_preview=True)
+                grade(call.message,lang,True)
+        else:
+            bot.send_message(call.message.chat.id,"start command is for bot frontend only 👾",reply_to_message_id=call.message.id)
+
+
     elif call.data=='grade_setting_back':
         markup  = telebot.types.InlineKeyboardMarkup()
         markup.add(telebot.types.InlineKeyboardButton(language[lang]['subscribe'],callback_data='sub_PatchNews'), telebot.types.InlineKeyboardButton(language[lang]['unSubscribe'],callback_data=f'unSub_PatchNews')) 
@@ -344,14 +377,6 @@ def callbackHandler(call:telebot.types.CallbackQuery):
         bot.edit_message_reply_markup(chat_id=call.message.chat.id,message_id=call.message.id,reply_markup=markup)
     elif "updateDir_" in call.data:
         bot.register_next_step_handler(bot.send_message(call.message.chat.id,language['admin']['newName']),lambda m:setUpdateDir(m,call.data.split('_')[1],call.data.split('_')[2]))
-    
-    elif "deleteDir" in call.data:
-        if call.data.split("_")[2]=='yes':
-            deleteDiractory(call.data.split("_")[1])
-            bot.delete_message(call.messege.chat.id,call.messege.id)
-            bot.send_message(call.messege.chat.id,language['admin']['dirDeleted'])
-        else:
-            bot.delete_message(call.messege.chat.id,call.messege.id)
     elif "paste_" in call.data:
         bot.register_next_step_handler(bot.send_message(call.message.chat.id,language['admin']['pasteMessage']),lambda m: insertMessageID(call.data.split("_")[1],m))
     elif 'newDir_'in call.data:
@@ -362,6 +387,13 @@ def callbackHandler(call:telebot.types.CallbackQuery):
         sendPatchNews(call.message)
     elif 'SEND_' in call.data:
         bot.register_next_step_handler(bot.send_message(call.message.chat.id,"enter the message you want to send🔽"),lambda m: sendPatchMessage(m,call.data.split("_")[1]))
+    elif 'deleteDir_' in call.data:
+        if call.data.split('_')[2]=='no':
+            bot.delete_message(call.message.chat.id,call.message.id)
+        else:
+            deleteDiractory(call.data.split('_')[1].lower().strip())
+            bot.delete_message(call.message.chat.id,call.message.id)
+            bot.send_message(call.message.chat.id,language['admin']['dirDeleted'])
     elif len(call.data.split('/'))>0:
        
         try:
@@ -376,79 +408,9 @@ def callbackHandler(call:telebot.types.CallbackQuery):
         except copy.Error:
             return
         
-
-
-# Text handler
-@bot.message_handler(content_types=['text'])
-def text(message:telebot.types.Message):
-   
-    userLanguage = getLanguage(message.from_user.id)
-    if message.text in ['/courses',language[userLanguage]['courses']]:
-        bot.send_message(message.chat.id,language[userLanguage]['select_sem'],disable_web_page_preview=False,reply_markup=makeMarup('c',userLanguage,message))
-    
-    elif message.text in ['/contact',language[userLanguage]['contact']]:
-        bot.register_next_step_handler(bot.send_message(message.chat.id,language[userLanguage]['sendFeedBack']),forwardContact)
-    elif message.text in ['/setting',language[userLanguage]['sitting']]:
-        changeSetting(userLanguage,message)
-    elif message.text in ['/editIndex',language[userLanguage]['addIndex']]:
-        bot.register_next_step_handler(bot.send_message(message.chat.id,language[userLanguage]['enterIndex']),saveIndex)
-    elif message.text in ['/backMain',language[userLanguage]['back']]:
-        bot.send_message(message.chat.id,language[userLanguage]['main'],reply_markup=mainReplyKeyboard(userLanguage))
-    elif message.text in ['editColNews',language[userLanguage]['colNews']]:
-        markup  = telebot.types.InlineKeyboardMarkup()
-        markup.add(telebot.types.InlineKeyboardButton(language[userLanguage]['subscribe'],callback_data='sub_News'), telebot.types.InlineKeyboardButton(language[userLanguage]['unSubscribe'],callback_data=f'unSub_News')) 
-        bot.send_message(message.chat.id,language[userLanguage]['editColNews'],reply_markup=markup)
-    elif message.text in ['editPatchNews',language[userLanguage]['patchNews']]:
-        markup  = telebot.types.InlineKeyboardMarkup()
-        markup.add(telebot.types.InlineKeyboardButton(language[userLanguage]['subscribe'],callback_data='sub_PatchNews'), telebot.types.InlineKeyboardButton(language[userLanguage]['unSubscribe'],callback_data=f'unSub_PatchNews')) 
-        bot.send_message(message.chat.id,language[userLanguage]['patchNewsInfo'],reply_markup=markup)
-    elif message.text in ['/help',language[userLanguage]['help']]:
-        bot.send_message(message.chat.id,language[userLanguage]['helpMessage'])
-    if message.chat.id==config['chatId']:
-        if language['admin']['addDir'] in message.text:
-            bot.register_next_step_handler(bot.send_message(message.chat.id,language['admin']['dirName']),callback=addDir)
-        elif language['admin']['updateDir'] in message.text:
-            bot.register_next_step_handler(bot.send_message(message.chat.id,language['admin']['dirName']),callback=updateDir)
-        elif language['admin']['delDir'] in message.text:
-            bot.register_next_step_handler(bot.send_message(message.chat.id,language['admin']['dirName']),callback=deleteDir)
-        elif language['admin']['addMess'] in message.text:
-            showDirs(message)
-        elif language['admin']['delMess'] in message.text:
-            if message.reply_to_message:
-                deleteMessage(message.reply_to_message)
-            else:
-                bot.send_message(message.chat.id,language['admin']['instracionDelMess'])
-        elif language['admin']['sendNews'] in message.text:
-            markUp = telebot.types.InlineKeyboardMarkup()
-            markup.add(telebot.types.InlineKeyboardButton(language['admin']['patchNews'], callback_data='sendPacthNews'))
-            markUp.add(telebot.types.InlineKeyboardButton(language['admin']['colNews'],callback_data='sendColNews'))
-            bot.send_message(message.chat.id,"chose one",reply_markup=markUp)
-        elif message.reply_to_message and message.text[0:2]=='$c':
-            checker=checkDir(message.text.replace('$',''))
-            
-            if checker== True:
-                insertMessageID(message.text[1:].lower().strip(),message.reply_to_message)
-                bot.send_message(message.chat.id,language[userLanguage]['saved'],reply_to_message_id=message.id)
-            else:
-                bot.send_message(message.chat.id,language[userLanguage]['dir_name_missing'].format(checker[0]),reply_markup=dirMarkup(checker),reply_to_message_id=message.id)
-        elif message.reply_to_message and message.text[0:2]=='$m':
-            li= message.text.split()
-            
-            for patch in li[1:] :
-                
-                patchMembers=getSubUser(patch)
-                if len(patchMembers)>0:
-                    m=bot.send_message(message.chat.id,language[userLanguage]['sending'],reply_to_message_id=message.id)
-                    for member in patchMembers:
-                        bot.forward_message(member,message.reply_to_message.chat.id,message.reply_to_message.id)
-                        
-                    bot.edit_message_text(language[userLanguage]['doneSending'],m.chat.id,m.id)
-                else :
-                    bot.send_message(message.chat.id,language[userLanguage]['noPatch'].format(patch),reply_to_message_id=message.id)
-
 def addDir(message:telebot.types.Message,Path="",addMessage=False):
     dirname=message.text
-    chaeck=checkDirCode(dirname)
+    chaeck=checkDirCode(dirname.lower().strip())
     if chaeck== True:
         if addMessage:
             insertMessageId(f"{Path}/{dirname}",'0','null','null')
@@ -459,8 +421,8 @@ def addDir(message:telebot.types.Message,Path="",addMessage=False):
         
 def dirLang(message:telebot.types.Message,dirName,check,Path="",addMessage=False):
     nameLang=message.text
-    if setDir(check[0],dirName,nameLang):
-        chaeck2=checkDirCode(dirName)
+    if setDir(check[0],dirName.lower().strip(),nameLang.lower().strip()):
+        chaeck2=checkDirCode(dirName.lower().strip())
         if chaeck2==True:
             if addMessage:
                 insertMessageId(f"{Path}/{dirName}",'0','null','null')
@@ -482,12 +444,12 @@ def updateDir(message:telebot.types.Message):
 
 
 def setUpdateDir(message:telebot.types.Message,dirc,column):
-    if (UpdateDir(dirc,message.text,column)):
+    if (UpdateDir(dirc,message.text.lower().strip(),column)):
         bot.send_message(message.chat.id,f"{column} name updated ✅",reply_to_message_id=message.id)
     else :
         bot.send_message(message.chat.id,"somthing went wrong please try agin..",reply_to_message_id=message.id)
 def deleteDir(message:telebot.types.Message):
-    if checkDirCode(message.text):
+    if checkDirCode(message.text.lower().strip())==True or len(checkDirCode(message.text.lower().strip()))<=1 :
         markup = telebot.types.InlineKeyboardMarkup()
         markup.add(telebot.types.InlineKeyboardButton('YES', callback_data=f'deleteDir_{message.text}_yes'),telebot.types.InlineKeyboardButton('NO', callback_data=f'deleteDir_{message.text}_no')) 
         bot.send_message(message.chat.id,f"are you shore you want to delete diractory {message.text} ?",reply_markup=markup)
@@ -523,7 +485,7 @@ def snedColNews(message:telebot.types.Message):
     if len(patchMembers)>0:
             m=bot.send_message(message.chat.id,language['admin']['sending'],reply_to_message_id=message.id)
             for member in patchMembers:
-                bot.forward_message(member.userChat,message.id,message.id)
+                bot.forward_message(member.userChat,message.chat.id,message.id)
                 
             bot.edit_message_text(language['admin']['doneSending'],m.chat.id,m.id)
     else :
@@ -541,17 +503,89 @@ def sendPatchNews(message):
     markup.add(telebot.types.InlineKeyboardButton("5 "+language["en"]['it'],callback_data='SEND_5/it'),telebot.types.InlineKeyboardButton("5 "+language["en"]['CS'],callback_data='SEND_5/dep/cs'))
     markup.add(telebot.types.InlineKeyboardButton("5 "+language["en"]['mathCS'],callback_data='SEND_5/dep/mathcs'),telebot.types.InlineKeyboardButton("5"+language["en"]['staCS'],callback_data='SEND_5/dep/scs'))
     markup.add(telebot.types.InlineKeyboardButton("5 "+language["en"]['mathP'],callback_data='SEND_5/dep/mathp'),telebot.types.InlineKeyboardButton("5 "+language["en"]['stati'],callback_data='SEND_5/dep/s'))
-    bot.send_message(message.chat.id,"Select a patch",reply_markup=makeMarup)               
+    bot.send_message(message.chat.id,"Select a patch",reply_markup=markup)               
 def sendPatchMessage(message,patch):
     patchMembers=getSubUser(patch)
     if len(patchMembers)>0:
         m=bot.send_message(message.chat.id,language['admin']['sending'],reply_to_message_id=message.id)
         for member in patchMembers:
-            bot.forward_message(member,message.id,message.id)
+            bot.forward_message(member.userChat,message.chat.id,message.id)
             
         bot.edit_message_text(language['admin']['doneSending'],m.chat.id,m.id)
     else :
         bot.send_message(message.chat.id,language["admin"]['noSub'],reply_to_message_id=message.id)
+
+
+# Text handler
+@bot.message_handler(content_types=['text'])
+def text(message:telebot.types.Message):
+   
+    userLanguage = getLanguage(message.from_user.id)
+    if message.text in ['/courses',language[userLanguage]['courses']]:
+        bot.send_message(message.chat.id,language[userLanguage]['select_sem'],disable_web_page_preview=False,reply_markup=makeMarup('c',userLanguage,message))
+    
+    elif message.text in ['/contact',language[userLanguage]['contact']]:
+        bot.register_next_step_handler(bot.send_message(message.chat.id,language[userLanguage]['sendFeedBack']),forwardContact)
+    elif message.text in ['/setting',language[userLanguage]['setting']]:
+        changeSetting(userLanguage,message)
+    elif message.text in ['/editIndex',language[userLanguage]['addIndex']]:
+        bot.register_next_step_handler(bot.send_message(message.chat.id,language[userLanguage]['enterIndex']),saveIndex)
+    elif message.text in ['/backMain',language[userLanguage]['back']]:
+        bot.send_message(message.chat.id,language[userLanguage]['main'],reply_markup=mainReplyKeyboard(userLanguage))
+    elif message.text in ['editColNews',language[userLanguage]['colNews']]:
+        markup  = telebot.types.InlineKeyboardMarkup()
+        markup.add(telebot.types.InlineKeyboardButton(language[userLanguage]['subscribe'],callback_data='sub_News'), telebot.types.InlineKeyboardButton(language[userLanguage]['unSubscribe'],callback_data=f'unSub_News')) 
+        bot.send_message(message.chat.id,language[userLanguage]['editColNews'],reply_markup=markup)
+    elif message.text in ['/language',language[userLanguage]['language']]:
+        startLang(message,update='UPDATE')
+    elif message.text in ['editPatchNews',language[userLanguage]['patchNews']]:
+        markup  = telebot.types.InlineKeyboardMarkup()
+        markup.add(telebot.types.InlineKeyboardButton(language[userLanguage]['subscribe'],callback_data='sub_PatchNews'), telebot.types.InlineKeyboardButton(language[userLanguage]['unSubscribe'],callback_data=f'unSub_PatchNews')) 
+        bot.send_message(message.chat.id,language[userLanguage]['patchNewsInfo'],reply_markup=markup)
+    elif message.text in ['/help',language[userLanguage]['help']]:
+        bot.send_message(message.chat.id,language[userLanguage]['helpMessage'])
+    if message.chat.id==config['chatId']:
+        if language['admin']['addDir'] in message.text:
+            bot.register_next_step_handler(bot.send_message(message.chat.id,language['admin']['dirName']),callback=addDir)
+        elif language['admin']['updateDir'] in message.text:
+            bot.register_next_step_handler(bot.send_message(message.chat.id,language['admin']['dirName']),callback=updateDir)
+        elif language['admin']['delDir'] in message.text:
+            bot.register_next_step_handler(bot.send_message(message.chat.id,language['admin']['dirName']),callback=deleteDir)
+        elif language['admin']['addMess'] in message.text:
+            showDirs(message)
+        elif language['admin']['delMess'] in message.text:
+            if message.reply_to_message:
+                deleteMessage(message.reply_to_message)
+            else:
+                bot.send_message(message.chat.id,language['admin']['instracionDelMess'])
+        elif language['admin']['sendNews'] in message.text:
+            markUp = telebot.types.InlineKeyboardMarkup()
+            markUp.add(telebot.types.InlineKeyboardButton(language['admin']['patchNews'], callback_data='sendPacthNews'))
+            markUp.add(telebot.types.InlineKeyboardButton(language['admin']['colNews'],callback_data='sendColNews'))
+            bot.send_message(message.chat.id,"chose one",reply_markup=markUp)
+        elif message.reply_to_message and message.text[0:2]=='$c':
+            checker=checkDir(message.text.replace('$',''))
+            
+            if checker== True:
+                insertMessageID(message.text[1:].lower().strip(),message.reply_to_message)
+                bot.send_message(message.chat.id,language[userLanguage]['saved'],reply_to_message_id=message.id)
+            else:
+                bot.send_message(message.chat.id,language[userLanguage]['dir_name_missing'].format(checker[0]),reply_markup=dirMarkup(checker),reply_to_message_id=message.id)
+        elif message.reply_to_message and message.text[0:2]=='$m':
+            li= message.text.split()
+            
+            for patch in li[1:] :
+                
+                patchMembers=getSubUser(patch)
+                if len(patchMembers)>0:
+                    m=bot.send_message(message.chat.id,language[userLanguage]['sending'],reply_to_message_id=message.id)
+                    for member in patchMembers:
+                        bot.forward_message(member,message.reply_to_message.chat.id,message.reply_to_message.id)
+                        
+                    bot.edit_message_text(language[userLanguage]['doneSending'],m.chat.id,m.id)
+                else :
+                    bot.send_message(message.chat.id,language[userLanguage]['noPatch'].format(patch),reply_to_message_id=message.id)
+
 
 bot.polling(none_stop=True)
     

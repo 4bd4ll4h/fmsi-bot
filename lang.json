@@ -1,10 +1,15 @@
 {
     "ar":{
 
+        "arabic":"العربية",
+        "chooseLang":"اختر لغة",
+        "langUpdated":"تم تحديث اللغة ✅",
+        "language":"اللغة",
+        "worngIndex":"خطأ في نمط ادخال رقم الجلوس الرجاء الضعط علي ادخال\\تعديل رقم الجلوس والمحاولة مجددا ",
         "greet":"مرحباً {} أنا بوت كلية العلوم الرياضية والمعلوماتية 🖥 \n",
         "greetComBack":"مرحباً بعودتك {} \n",
         "courses":"📚 الكورسات",
-        "sitting":"⚙️ الاعدادات",
+        "setting":"⚙️ الاعدادات",
         "contact":"☎️ تواصل معنا",
         "help":"⁉️ المساعدة",
         "first":"👶 المستوي الأول",
@@ -48,6 +53,59 @@
         ,"adminHelp":"🦥Soon...🕸"
     }
     ,
+    "en":{
+        "english":"English",
+        "language":"language",
+        "langUpdated":"language updated ✅",
+        "chooseLang":"choose language",
+        "worngIndex":"you enterd a worng index pattern press add/update indext again and enter your Index",
+        "greet":"Hi {} I'm FMSI bot and I'm here to help ☺️ 🖥 \n",
+        "greetComBack":"Welcome back ☺️ {} \n",
+        "courses":"📚 courses",
+        "setting":"⚙️ setting",
+        "contact":"☎️ contact with us",
+        "help":"⁉️ help",
+        "first":"👶 First grade",
+        "third":"👴 Third grade",
+        "fifth":"🧑‍🎓 Fifth grade",
+        "second":"🧔 Second grade",
+        "fourth":"💃 Fourth grade",
+        "back":"Back 🔙",
+        "main":"Main menu📜",
+        "chooseGrade":"Please choose your grade to get Patch news and updates <b>only academics stuff</b> \n <code>(exams,lectures,news,...)</code>",
+        "change_grade":"🔄 Update grade info",
+        "grade_selected":"✅",
+        "chooseSetting":"choose on of the setting to get updated...",
+        "select_sem":"<b>Semester...?</b>",
+        "dir_name_missing":"يبدو أن اسم الكورس {} بأحد اللغات (او جميعهم) مفقود الرجاء الاضافة 🙃<b>بداخل القوسين</b> ",
+        "fail_insert_dir":"Field in a singing name please try again",
+        "saved":"✅ Saved",
+        "noPatch":"error in code {} please correct 🙏",
+        "sending":"Sending... 🕊",
+        "doneSending":"👌 Send",
+        "it":"IT",
+        "mathCS":"CS & Math",
+        "mathP":"Math",
+        "CS":"CS",
+        "staCS":"CS & Statistics",
+        "stati":"Statistics",
+        "department":"Department",
+        "patchNews":"Patch News 📊📌",
+        "colNews":"Faculty News 📮",
+        "subscribe":"Subscribe",
+        "unSubscribe":"UnSubscribe",
+        "subscribed":"✅Subscribed",
+        "unSubscribed":"🚫UnSubscribed",
+        "patchNewsInfo":"<i>Patch News\n</i>messages that related to your patch a academia <b>only academics stuff</b> (exams,lectures,news,...)",
+        "editColNews":"<b>Faculty News</b>\n messages that related to faculty community like news ,event and so on... you can  <i>\n Subscribe or unsubscribe </i>",
+        "choos_department":"Choose a department",
+        "addIndex":"add/update index",
+        "enterIndex":"enter your index🔢 <b>0xx-XXX</b>",
+        "sendFeedBack":"يمكن ارسال <code> إفادة , عطل , او اي اضافة تريد منا اضافتها❤️</code>",
+        "helpMessage":"🙃 او بوت كلية العلوم الرياضية و المعلوماتية FMSI🤍\n\n\nصمم البوت بهدف المساعدة في تنظيم المحتوي الرقمي من (<code> محاضرات ,🎥 تيتوريالات , لابات 🖥, مراجع 📚,ملاحظات🔖 , امتحانات 📑...الخ</code>) ليصل الطالب للمحتوي بسرعة و سهولة و يسر🙃 \n\nكما يهدف لابتكار وسيلة اسرع لربط طلاب الكلية ببعضهم من خلال نشرة رسائل قصيرة تصل للكل (او دفعة معينة) بآخر الاخبار و الأمور العاجلة.\n\nو أخيراً يهدف لتوثيق كامل محتوي الكلية ليصبح مرجعاً لكل طلاب الكلية الحاليين و اللاحقين بإذن الله \n\n <b>ملاحظة</b>: \nالبوت في طور البناء 😁 يمكنك ابداء ملاحظاتك او المساعدة في اكماله🦾 فقط اضغط علي زي <b>تواصل معنا</b>  ثم ارسل رسالتك مباشرة او راسلني  علي  @Abd4ll4h_4 "
+        ,"adminHelp":"🦥Soon...🕸"
+    }
+    ,
     "admin":{
         "addDir":"add Diractory",
         "updateDir":"update Diractory",
@@ -74,6 +132,7 @@
         "colNews":"Facalty News",
         "sending":"sending...",
         "doneSending":"done 👌",
-        "noSub":"no sub users"
+        "noSub":"no sub users",
+        "dirDeleted":"Diractory Deleted ✅"
     }
 }

@@ -8,13 +8,17 @@ from sqlalchemy.orm import session
 from db.session import Session
 
 
-#check and insert new account into the dataBase
-def setAccount(userId,userChat):
+def isNewUser(id):
     session = Session()
+    isRegistered = session.query(User).filter(User.UserID==id).one_or_none()
+    return not bool(isRegistered)
 
+#check and insert new account into the dataBase
+def setAccount(userId,userChat,lang):
+    session = Session()
     isRegistered = session.query(User).filter(User.UserID==userId).one_or_none()
     if not isRegistered:
-        user = User(UserID=userId, userChat=userChat)
+        user = User(UserID=userId, userChat=userChat,Lang=lang)
         session.add(user)
         session.commit()
     
@@ -90,7 +94,7 @@ def getMessgesIDs(dirs):
     session = Session()
 
     messages = session.query(Message)\
-        .filter(Message.dir==dirs)\
+        .filter(Message.dir==dirs,Message.messageId!='null')\
         .all()
 
     return messages
@@ -186,14 +190,14 @@ def deleteDiractory(dirc):
     session = Session()
 
     code_name = session.query(CodeName)\
-        .filter(CodeName.dir.like(f'{dirc}'))\
-        .one_or_none()
+            .filter(CodeName.dir==dirc)\
+            .one_or_none()
 
     session.delete(code_name)
 
     session.commit()
 
-def deleteDBMessage(fileId:str):
+def deleteDBMessage(chatID,fileId:str):
     """function to delete row in the messges table that contin the same messageID"""
     session = Session()
 
