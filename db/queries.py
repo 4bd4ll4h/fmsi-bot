@@ -1,6 +1,7 @@
 import re
 from sqlalchemy.sql import text
 from sqlalchemy.sql.expression import null
+from sqlalchemy.sql.functions import user
 from telebot import types
 from db.models import CodeName, Message, User
 from sqlalchemy.orm import session
@@ -160,12 +161,55 @@ def getDirName(dr,lang):
     lang = getattr(code_name, lang)
 
     return lang
+
 def UpdateDir(dirc,newName,column):
     """it's an update method for codeNames table for spcific column with new name
     -retrun true in scusse , false in failure"""
+    session = Session()
+
+    try:
+        code_name = session.query(CodeName)\
+            .filter(CodeName.dir.like(f'{dirc}'))\
+            .one_or_none()
+
+        setattr(code_name, column, newName)
+
+        session.commit()
+
+        return True
+
+    except:
+        return False
+
 def deleteDiractory(dirc):
     """simply delete this dir from codeNames table"""
+    session = Session()
+
+    code_name = session.query(CodeName)\
+        .filter(CodeName.dir.like(f'{dirc}'))\
+        .one_or_none()
+
+    session.delete(code_name)
+
+    session.commit()
+
 def deleteDBMessage(fileId:str):
     """function to delete row in the messges table that contin the same messageID"""
+    session = Session()
+
+    message = session.query(Message)\
+        .filter(Message.messageId==fileId)\
+        .one_or_none()
+
+    session.delete(message)
+    session.commit()
+
 def getNewsSubUsers():
     """get all user where News Column is true"""
+    session = Session()
+
+    users = session.query(User)\
+        .filter(User.News=='true')\
+        .all()
+
+    return users
