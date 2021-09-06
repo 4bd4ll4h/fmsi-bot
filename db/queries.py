@@ -207,6 +207,15 @@ def deleteDBMessage(chatID,fileId:str):
 
     session.delete(message)
     session.commit()
+def isFileExsit(fileId:str):
+    """function to delete row in the messges table that contin the same messageID"""
+    session = Session()
+
+    message = session.query(Message)\
+        .filter(Message.messageId==fileId)\
+        .one_or_none()
+    return True if message else False
+
 
 def getNewsSubUsers():
     """get all user where News Column is true"""

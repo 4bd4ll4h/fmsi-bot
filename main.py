@@ -132,25 +132,25 @@ def dirMarkup(codeNames):
         markup.add(telebot.types.InlineKeyboardButton('English', switch_inline_query_current_chat=f'$i/en/{codeNames[0]}/()'))
     return markup
 def insertMessageID(dr:str,message:telebot.types.Message):
+    if (message):
+        if(message.content_type=='document'):
+            insertMessageId(dr,message.chat.id,message.document.file_id,message.content_type)
+        elif message.content_type=='text':
+            insertMessageId(dr,message.chat.id,message.text,message.content_type)
+        elif message.content_type=='audio':
+            insertMessageId(dr,message.chat.id,message.audio.file_id,message.content_type)
+        elif message.content_type=='photo':
+            insertMessageId(dr,message.chat.id,message.photo.__str__,message.content_type)
+        elif message.content_type=='video':
+            insertMessageId(dr,message.chat.id,message.video.file_id,message.content_type)
+        elif message.content_type=='video_note':
+            insertMessageId(dr,message.chat.id,message.video_note.file_id,message.content_type)
+        elif message.content_type=='voice':
+            insertMessageId(dr,message.chat.id,message.voice.file_id,message.content_type)
+        elif message.content_type=='location':
+            insertMessageId(dr,message.chat.id,message.voice.file_id,message.content_type)
+        bot.send_message(message.chat.id,language['admin']['messageInserted'],reply_to_message_id=message.id)
     
-    if(message.content_type=='document'):
-        insertMessageId(dr,message.chat.id,message.document.file_id,message.content_type)
-    elif message.content_type=='text':
-        insertMessageId(dr,message.chat.id,message.text,message.content_type)
-    elif message.content_type=='audio':
-        insertMessageId(dr,message.chat.id,message.audio.file_id,message.content_type)
-    elif message.content_type=='photo':
-        insertMessageId(dr,message.chat.id,message.photo.__str__,message.content_type)
-    elif message.content_type=='video':
-        insertMessageId(dr,message.chat.id,message.video.file_id,message.content_type)
-    elif message.content_type=='video_note':
-        insertMessageId(dr,message.chat.id,message.video_note.file_id,message.content_type)
-    elif message.content_type=='voice':
-        insertMessageId(dr,message.chat.id,message.voice.file_id,message.content_type)
-    elif message.content_type=='location':
-        insertMessageId(dr,message.chat.id,message.voice.file_id,message.content_type)
-    bot.send_message(message.chat.id,language['admin']['messageInserted'],reply_to_message_id=message.id)
-
 
 def forwardContact(message):
     bot.forward_message('-1001451209844',message.chat.id,message.id)
@@ -226,7 +226,7 @@ def admin(messege):
 # Callback handler
 @bot.callback_query_handler(func=lambda call: True)
 def callbackHandler(call:telebot.types.CallbackQuery):
-    lang=getLanguage(call.message.from_user.id)
+    lang=getLanguage(call.from_user.id)
     if call.data[:11] == 'first_grade':
         markup = telebot.types.InlineKeyboardMarkup()
         markup.add(telebot.types.InlineKeyboardButton(language[lang]['it'],callback_data='IT_1'))
@@ -282,6 +282,7 @@ def callbackHandler(call:telebot.types.CallbackQuery):
             bot.delete_message(call.message.chat.id,call.message.id)
             bot.send_message(call.message.chat.id,language[lang]['grade_selected'])
         if call.data.split('_')[1]=='3':
+            print(call.from_user.id)
             setLev('3/it',call.from_user.id)
             bot.delete_message(call.message.chat.id,call.message.id)
             bot.send_message(call.message.chat.id,language[lang]['grade_selected'])
@@ -303,7 +304,7 @@ def callbackHandler(call:telebot.types.CallbackQuery):
             bot.delete_message(call.message.chat.id,call.message.id)
             bot.send_message(call.message.chat.id,language[lang]['grade_selected'])
         if call.data.split('_')[1]=='3':
-            setLev('3/dep',call.message.from_user.id)
+            setLev('3/dep',call.from_user.id)
             bot.delete_message(call.message.chat.id,call.message.id)
             bot.send_message(call.message.chat.id,language[lang]['grade_selected'])
     elif 'CS' in call.data:
@@ -355,19 +356,21 @@ def callbackHandler(call:telebot.types.CallbackQuery):
         setUserInfo(call.from_user.id,'Lang',call.data.split("=")[1])
         userLang=getLanguage(call.from_user.id)
         bot.send_message(call.message.chat.id,language[userLang]['langUpdated'])
+        
         changeSetting(userLang,call.message)
     elif 'Lang=' in call.data:
         lang=call.data.split("=")[1]
         if call.message.chat.id !=config['chatId'] :
-            if not setAccount(call.message.from_user.id,call.message.chat.id,lang):
+            if not setAccount(call.from_user.id,call.message.chat.id,lang):
 
                 bot.send_message(call.message.chat.id,text=language[lang]['greet'].format(call.from_user.first_name),reply_markup=mainReplyKeyboard(lang),disable_web_page_preview=True)
                 grade(call.message,lang)
-            elif(not checkInfo(call.message.from_user.id,"Lev")):
+            elif(not checkInfo(call.from_user.id,"Lev")):
                 bot.send_message(call.message.chat.id,text=language[lang]['greetComBack'].format(call.from_user.first_name),reply_markup=mainReplyKeyboard(lang),disable_web_page_preview=True)
                 grade(call.message,lang,True)
         else:
             bot.send_message(call.message.chat.id,"start command is for bot frontend only 👾",reply_to_message_id=call.message.id)
+        bot.delete_message(call.message.chat.id,call.message.id)
 
 
     elif call.data=='grade_setting_back':
@@ -376,9 +379,9 @@ def callbackHandler(call:telebot.types.CallbackQuery):
         bot.edit_message_text(text=language[lang]['patchNewsInfo'],message_id=call.message.id,chat_id=call.message.chat.id)
         bot.edit_message_reply_markup(chat_id=call.message.chat.id,message_id=call.message.id,reply_markup=markup)
     elif "updateDir_" in call.data:
-        bot.register_next_step_handler(bot.send_message(call.message.chat.id,language['admin']['newName']),lambda m:setUpdateDir(m,call.data.split('_')[1],call.data.split('_')[2]))
+        bot.register_for_reply(bot.send_message(call.message.chat.id,language['admin']['newName']),lambda m:setUpdateDir(m,call.data.split('_')[1],call.data.split('_')[2]))
     elif "paste_" in call.data:
-        bot.register_next_step_handler(bot.send_message(call.message.chat.id,language['admin']['pasteMessage']),lambda m: insertMessageID(call.data.split("_")[1],m))
+        bot.register_for_reply(bot.send_message(call.message.chat.id,language['admin']['pasteMessage']),lambda m: insertMessageID(call.data.split("_")[1],m.reply_to_message))
     elif 'newDir_'in call.data:
         addDir_and_con(call.message,call.data.split("_")[1])
     elif 'sendColNews' in call.data:
@@ -417,7 +420,7 @@ def addDir(message:telebot.types.Message,Path="",addMessage=False):
             bot.send_message(message.chat.id,language['admin']['chooseDir'],reply_markup=makeMarup(Path,'ar',message,justDir=True))
         else: bot.send_message(message.chat.id,language['admin']['exisited'])
     else:
-        bot.register_next_step_handler( bot.send_message(message.chat.id,language['admin']['enterLang'].format(chaeck[0])),lambda m:dirLang(m,dirname,chaeck,Path=Path,addMessage=addMessage))
+        bot.register_for_reply( bot.send_message(message.chat.id,language['admin']['enterLang'].format(chaeck[0])),lambda m:dirLang(m,dirname,chaeck,Path=Path,addMessage=addMessage))
         
 def dirLang(message:telebot.types.Message,dirName,check,Path="",addMessage=False):
     nameLang=message.text
@@ -431,7 +434,7 @@ def dirLang(message:telebot.types.Message,dirName,check,Path="",addMessage=False
                 bot.send_message(message.chat.id,language['admin']['setDirComplete'])
 
         else:
-            bot.register_next_step_handler( bot.send_message(message.chat.id,language['admin']['enterLang'].format(chaeck2[0])),lambda m:dirLang(m,dirName,chaeck2,Path=Path,addMessage=addMessage))
+            bot.register_for_reply( bot.send_message(message.chat.id,language['admin']['enterLang'].format(chaeck2[0])),lambda m:dirLang(m,dirName,chaeck2,Path=Path,addMessage=addMessage))
 
 
 def updateDir(message:telebot.types.Message):
@@ -459,25 +462,61 @@ def deleteDir(message:telebot.types.Message):
 def showDirs(message:telebot.types.Message):
     bot.send_message(message.chat.id,language['admin']['chooseDir'],reply_markup=makeMarup('c',lang='ar',message=message,justDir=True))
 def addDir_and_con(message :telebot.types.Message,Path):
-    bot.register_next_step_handler(bot.send_message(message.chat.id,language['admin']['dirName']),lambda m:addDir(m,Path=Path,addMessage=True))
-def deleteMessage(message:telebot.types.Message):
-    if(message.content_type=='document'):
-        deleteDBMessage(message.chat.id,message.document.file_id)
-    elif message.content_type=='text':
-        deleteDBMessage(message.chat.id,message.text)
-    elif message.content_type=='audio':
-        deleteDBMessage(message.chat.id,message.audio.file_id)
-    elif message.content_type=='photo':
-        deleteDBMessage(message.chat.id,message.photo.__str__)
-    elif message.content_type=='video':
-        deleteDBMessage(message.chat.id,message.video.file_id)
-    elif message.content_type=='video_note':
-        deleteDBMessage(message.chat.id,message.video_note.file_id)
-    elif message.content_type=='voice':
-        deleteDBMessage(message.chat.id,message.voice.file_id)
-    elif message.content_type=='location':
-        deleteDBMessage(message.chat.id,message.voice.file_id)
-    bot.send_message(message.chat.id,language['admin']['messageDleleted'])
+    bot.register_for_reply(bot.send_message(message.chat.id,language['admin']['dirName']),lambda m:addDir(m,Path=Path,addMessage=True))
+def deleteMessage(mMessage:telebot.types.Message):
+    message=mMessage.reply_to_message
+    if message and mMessage.text.lower().strip()=='yes':
+        if(message.content_type=='document'):
+            if isFileExsit(message.document.file_id):
+                deleteDBMessage(message.chat.id,message.document.file_id)
+                bot.send_message(mMessage.chat.id,language['admin']['messageDleleted'])
+            else :
+                bot.send_message(mMessage.chat.id,language['admin']['isFile'].format('document'))
+        elif message.content_type=='text':
+            if isFileExsit(message.text):
+                deleteDBMessage(message.chat.id,message.text)
+                bot.send_message(mMessage.chat.id,language['admin']['messageDleleted'])
+            else :
+                bot.send_message(mMessage.chat.id,language['admin']['isFile'].format('text'))
+        elif message.content_type=='audio':
+            if isFileExsit(message.audio.file_id):
+                deleteDBMessage(message.chat.id,message.audio.file_id)
+                bot.send_message(mMessage.chat.id,language['admin']['messageDleleted'])
+            else :
+                bot.send_message(mMessage.chat.id,language['admin']['isFile'].format('text'))
+        elif message.content_type=='photo':
+            if isFileExsit(message.photo.__str__):
+                deleteDBMessage(message.chat.id,message.photo.__str__)
+                bot.send_message(mMessage.chat.id,language['admin']['messageDleleted'])
+            else :
+                bot.send_message(mMessage.chat.id,language['admin']['isFile'].format('photo'))
+        elif message.content_type=='video':
+            if isFileExsit(message.video.file_id):
+                deleteDBMessage(message.chat.id,message.video.file_id)
+                bot.send_message(mMessage.chat.id,language['admin']['messageDleleted'])
+            else :
+                bot.send_message(mMessage.chat.id,language['admin']['isFile'].format('video'))
+        elif message.content_type=='video_note':
+            if isFileExsit(message.video_note.file_id):
+                deleteDBMessage(message.chat.id,message.video_note.file_id)
+                bot.send_message(mMessage.chat.id,language['admin']['messageDleleted'])
+            else :
+                bot.send_message(mMessage.chat.id,language['admin']['isFile'].format('video_note'))
+        elif message.content_type=='voice':
+            if isFileExsit(message.voice.file_id):
+                deleteDBMessage(message.chat.id,message.voice.file_id)
+                bot.send_message(mMessage.chat.id,language['admin']['messageDleleted'])
+            else :
+                bot.send_message(mMessage.chat.id,language['admin']['isFile'].format('voice'))
+        elif message.content_type=='location':
+            if isFileExsit(message.voice.file_id):
+                deleteDBMessage(message.chat.id,message.voice.file_id)
+                bot.send_message(mMessage.chat.id,language['admin']['messageDleleted'])
+            else :
+                bot.send_message(mMessage.chat.id,language['admin']['isFile'].format('location'))
+        
+    else :
+        bot.send_message(mMessage.chat.id,'Error try again')
 
        
 def snedColNews(message:telebot.types.Message):
@@ -515,13 +554,21 @@ def sendPatchMessage(message,patch):
     else :
         bot.send_message(message.chat.id,language["admin"]['noSub'],reply_to_message_id=message.id)
 
+def deleteFile(message :telebot.types.Message):
+    if message.reply_to_message:
+        deleteMessage(message)
+    else:
+        bot.send_message(message.chat.id,language['admin']['instracionDelMess'])
+        bot.send_message(message.chat.id,'try again from the start')
+
 
 # Text handler
 @bot.message_handler(content_types=['text'])
 def text(message:telebot.types.Message):
-   
+    
     userLanguage = getLanguage(message.from_user.id)
     if message.text in ['/courses',language[userLanguage]['courses']]:
+        print("itshere")
         bot.send_message(message.chat.id,language[userLanguage]['select_sem'],disable_web_page_preview=False,reply_markup=makeMarup('c',userLanguage,message))
     
     elif message.text in ['/contact',language[userLanguage]['contact']]:
@@ -546,18 +593,16 @@ def text(message:telebot.types.Message):
         bot.send_message(message.chat.id,language[userLanguage]['helpMessage'])
     if message.chat.id==config['chatId']:
         if language['admin']['addDir'] in message.text:
-            bot.register_next_step_handler(bot.send_message(message.chat.id,language['admin']['dirName']),callback=addDir)
+            bot.register_for_reply(bot.send_message(message.chat.id,language['admin']['dirName']),callback=addDir)
         elif language['admin']['updateDir'] in message.text:
-            bot.register_next_step_handler(bot.send_message(message.chat.id,language['admin']['dirName']),callback=updateDir)
+            bot.register_for_reply(bot.send_message(message.chat.id,language['admin']['dirName']),callback=updateDir)
         elif language['admin']['delDir'] in message.text:
-            bot.register_next_step_handler(bot.send_message(message.chat.id,language['admin']['dirName']),callback=deleteDir)
+            bot.register_for_reply(bot.send_message(message.chat.id,language['admin']['dirName']),callback=deleteDir)
         elif language['admin']['addMess'] in message.text:
             showDirs(message)
         elif language['admin']['delMess'] in message.text:
-            if message.reply_to_message:
-                deleteMessage(message.reply_to_message)
-            else:
-                bot.send_message(message.chat.id,language['admin']['instracionDelMess'])
+            
+            bot.register_next_step_handler(bot.send_message(message.chat.id,language['admin']['instracionDelMess']),callback=deleteFile)
         elif language['admin']['sendNews'] in message.text:
             markUp = telebot.types.InlineKeyboardMarkup()
             markUp.add(telebot.types.InlineKeyboardButton(language['admin']['patchNews'], callback_data='sendPacthNews'))
