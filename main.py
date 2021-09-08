@@ -140,7 +140,7 @@ def insertMessageID(dr:str,message:telebot.types.Message):
         elif message.content_type=='audio':
             insertMessageId(dr,message.chat.id,message.audio.file_id,message.content_type)
         elif message.content_type=='photo':
-            insertMessageId(dr,message.chat.id,message.photo.__str__,message.content_type)
+            insertMessageId(dr,message.chat.id,message.photo[-1].file_id,message.content_type)
         elif message.content_type=='video':
             insertMessageId(dr,message.chat.id,message.video.file_id,message.content_type)
         elif message.content_type=='video_note':
@@ -222,7 +222,7 @@ def admin(messege):
         keyboard.row(button7)
 
         bot.send_message(messege.chat.id,'⚙️ admin commands running...',reply_markup=keyboard)
-    
+
 # Callback handler
 @bot.callback_query_handler(func=lambda call: True)
 def callbackHandler(call:telebot.types.CallbackQuery):
@@ -381,7 +381,7 @@ def callbackHandler(call:telebot.types.CallbackQuery):
     elif "updateDir_" in call.data:
         bot.register_for_reply(bot.send_message(call.message.chat.id,language['admin']['newName']),lambda m:setUpdateDir(m,call.data.split('_')[1],call.data.split('_')[2]))
     elif "paste_" in call.data:
-        bot.register_for_reply(bot.send_message(call.message.chat.id,language['admin']['pasteMessage']),lambda m: insertMessageID(call.data.split("_")[1],m.reply_to_message))
+        bot.register_next_step_handler(bot.send_message(call.message.chat.id,language['admin']['pasteMessage']),lambda m: insertMessageID(call.data.split("_")[1],m.reply_to_message))
     elif 'newDir_'in call.data:
         addDir_and_con(call.message,call.data.split("_")[1])
     elif 'sendColNews' in call.data:
@@ -406,11 +406,12 @@ def callbackHandler(call:telebot.types.CallbackQuery):
                 bot.edit_message_text(getDirName(call.data.split('/')[-1],lang),call.message.chat.id,call.message.id)
                 bot.edit_message_reply_markup(call.message.chat.id,call.message.id,reply_markup=makeMarup(mdirs=call.data,lang=lang,message=call.message,justDir=True))
             else:
+                print(call.data.split('/')[-1])
                 bot.edit_message_text(getDirName(call.data.split('/')[-1],lang),call.message.chat.id,call.message.id)
                 bot.edit_message_reply_markup(call.message.chat.id,call.message.id,reply_markup=makeMarup(mdirs=call.data,lang=lang,message=call.message))
         except copy.Error:
             return
-        
+       
 def addDir(message:telebot.types.Message,Path="",addMessage=False):
     dirname=message.text
     chaeck=checkDirCode(dirname.lower().strip())
@@ -485,8 +486,8 @@ def deleteMessage(mMessage:telebot.types.Message):
             else :
                 bot.send_message(mMessage.chat.id,language['admin']['isFile'].format('text'))
         elif message.content_type=='photo':
-            if isFileExsit(message.photo.__str__):
-                deleteDBMessage(message.chat.id,message.photo.__str__)
+            if isFileExsit(message.photo[-1].file_id):
+                deleteDBMessage(message.chat.id,message.photo[-1].file_id)
                 bot.send_message(mMessage.chat.id,language['admin']['messageDleleted'])
             else :
                 bot.send_message(mMessage.chat.id,language['admin']['isFile'].format('photo'))

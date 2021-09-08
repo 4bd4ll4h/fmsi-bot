@@ -123,7 +123,7 @@
         "newName":"enter new Name",
         "dirName":"enter Diractory code",
         "chooseDir":"choose Diractory to paste file",
-        "pasteMessage":"paste your the message after here 🔽",
+        "pasteMessage":"paste your the message here 🔽",
         "AddDiractory":"Add Diractory",
         "messageInserted":"Saved successfully ✅",
         "instracionDelMess":"to delete a file > make the message that contain the file a reply to it with the word <b>YES</b>",
