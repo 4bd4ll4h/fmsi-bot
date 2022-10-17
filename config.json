@@ -1,12 +1,12 @@
 {
-    "botToken": "1996639468:AAE8Wng4Qrmw_XAiGXDG7ru_hmEIxyY1V3M",
+    "botToken": "paste your bot token here",
     
     "webhookOptions":{
-        "webhookHost": "fmsi-bot.herokuapp.com",
+        "webhookHost": "if you want to use webhook put the host address here",
         
-        "webhookPort": 8443,
+        "webhookPort": /* ex:8443*/,
         
-        "webhookListen": "0.0.0.0",
+        "webhookListen": /*ex:"0.0.0.0"*/,
         
         "sslCertificate": null,
         
@@ -18,10 +18,10 @@
 
     "cache": "cache",
 
-    "cacheTime": 86400,
+    "cacheTime": /*ex:86400*/,
 
     "language":"lang.json",
 
-    "chatId":-1001451209844
+    "chatId":/*ex:-1001451209844*/
 
 }
